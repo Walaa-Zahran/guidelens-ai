@@ -1,0 +1,168 @@
+:root {
+  font-family: Inter, Arial, sans-serif;
+  color: #f5f7fb;
+  background: #0b1020;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at top, rgba(91, 141, 239, 0.18), transparent 30%),
+    #0b1020;
+  color: #f5f7fb;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.app-shell {
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 32px;
+}
+
+.header p {
+  margin: 8px 0 0;
+  color: #a9b4d0;
+}
+
+.status-group {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #d9e2ff;
+  font-size: 14px;
+}
+
+.badge.live {
+  background: rgba(73, 227, 155, 0.16);
+  color: #8df0b8;
+}
+
+.main-layout {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 20px;
+  min-height: 60vh;
+}
+
+.screen-stage,
+.guide-panel {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 50px;
+  backdrop-filter: blur(12px);
+}
+
+.panel-title {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #9ba8c7;
+  margin-bottom: 14px;
+}
+
+.screen-placeholder {
+  height: 100%;
+  min-height: 420px;
+  border-radius: 18px;
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  display: grid;
+  place-items: center;
+  color: #8e99b5;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.guide-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 18px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.card h3 {
+  margin: 0 0 10px;
+  font-size: 15px;
+  color: #dce5ff;
+}
+
+.card p {
+  margin: 0;
+  color: #b3bfdc;
+  line-height: 1.5;
+}
+
+.composer {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.composer input {
+  flex: 1;
+  padding: 16px 18px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+  outline: none;
+}
+
+.composer button {
+  padding: 16px 22px;
+  border-radius: 16px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(135deg, #5b8def, #8b5cf6);
+  color: white;
+  font-weight: 600;
+}
+
+.error-box {
+  margin-top: 16px;
+  background: rgba(255, 80, 80, 0.12);
+  border: 1px solid rgba(255, 80, 80, 0.25);
+  color: #ffb3b3;
+  padding: 14px 16px;
+  border-radius: 14px;
+}
+
+@media (max-width: 960px) {
+  .main-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .composer {
+    flex-direction: column;
+  }
+}
