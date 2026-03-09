@@ -156,7 +156,130 @@ body {
   padding: 14px 16px;
   border-radius: 14px;
 }
+.screen-stage-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
 
+.screen-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.secondary-btn {
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.secondary-btn.danger {
+  background: rgba(255, 90, 90, 0.14);
+  border-color: rgba(255, 90, 90, 0.25);
+  color: #ffd2d2;
+}
+
+.screen-video-wrap {
+  position: relative;
+  min-height: 420px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+}
+
+.screen-video {
+  width: 100%;
+  height: 100%;
+  min-height: 420px;
+  object-fit: contain;
+  background: #050814;
+  display: block;
+}
+
+.screen-video.hidden {
+  display: none;
+}
+
+.screen-video.visible {
+  display: block;
+}
+
+.screen-placeholder {
+  height: 420px;
+  display: grid;
+  place-items: center;
+  color: #8e99b5;
+}
+.voice-controls {
+  margin-top: 20px;
+  display: grid;
+  gap: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 18px;
+  backdrop-filter: blur(12px);
+}
+
+.voice-controls-left,
+.voice-controls-right {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.voice-btn {
+  padding: 14px 18px;
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(135deg, #5b8def, #8b5cf6);
+  color: white;
+  font-weight: 700;
+}
+
+.voice-btn.active {
+  background: linear-gradient(135deg, #ef4444, #f97316);
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15);
+}
+
+.transcript-box {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 18px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.transcript-box p {
+  margin: 0;
+  color: #b9c5e2;
+  line-height: 1.6;
+}
+
+.toggle-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #dce5ff;
+}
+
+.toggle-wrap input {
+  width: 18px;
+  height: 18px;
+}
+
+.highlight-card {
+  border-color: rgba(91, 141, 239, 0.35);
+  box-shadow: 0 0 0 1px rgba(91, 141, 239, 0.2);
+}
 @media (max-width: 960px) {
   .main-layout {
     grid-template-columns: 1fr;

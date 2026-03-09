@@ -7,8 +7,10 @@ export default function Header() {
       </div>
 
       <div className="status-group">
-        <span className="badge live">Live</span>
-        <span className="badge">Day 1 Build</span>
+        <span className="badge live">Live Agent Mode</span>
+        <span className="badge">Gemini Vision</span>
+        <span className="badge">Voice Enabled</span>
+        <span className="badge">Day 3 Build</span>
       </div>
     </header>
   );

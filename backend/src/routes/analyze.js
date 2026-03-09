@@ -1,11 +1,24 @@
 import express from "express";
-import { analyzePromptOnly } from "../services/geminiService.js";
+import { analyzePromptOnly, analyzeScreenImage } from "../services/geminiService.js";
 
 const router = express.Router();
 
 router.post("/", async (req, res) => {
     try {
-        const { message } = req.body;
+        const { message, imageBase64, mimeType } = req.body;
+
+        if (imageBase64) {
+            const result = await analyzeScreenImage({
+                message: message || "Analyze this screen and guide the user.",
+                imageBase64,
+                mimeType: mimeType || "image/png"
+            });
+
+            return res.json({
+                ok: true,
+                result
+            });
+        }
 
         if (!message || typeof message !== "string") {
             return res.status(400).json({
@@ -16,14 +29,14 @@ router.post("/", async (req, res) => {
 
         const result = await analyzePromptOnly(message);
 
-        res.json({
+        return res.json({
             ok: true,
             result
         });
     } catch (error) {
         console.error("Analyze route error:", error);
 
-        res.status(500).json({
+        return res.status(500).json({
             ok: false,
             error: error.message || "Something went wrong"
         });

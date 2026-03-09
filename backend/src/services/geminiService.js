@@ -10,6 +10,23 @@ if (!apiKey) {
 }
 
 const ai = new GoogleGenAI({ apiKey });
+function safeParseJson(text) {
+    try {
+        const cleaned = text.replace(/```json|```/g, "").trim();
+        return JSON.parse(cleaned);
+    } catch {
+        return null;
+    }
+}
+
+function fallbackResult(text) {
+    return {
+        screenSummary: text || "Unable to parse model response.",
+        taskGuess: "The user likely needs help with the visible screen.",
+        nextAction: "Ask the user to share a clearer screen or provide more context.",
+        warning: ""
+    };
+}
 
 export async function analyzePromptOnly(userMessage) {
     const systemPrompt = `
@@ -45,16 +62,47 @@ Rules:
     });
 
     const text = response.text;
+    return safeParseJson(text) || fallbackResult(text);
 
-    try {
-        const cleaned = text.replace(/```json|```/g, "").trim();
-        return JSON.parse(cleaned);
-    } catch {
-        return {
-            screenSummary: text,
-            taskGuess: "User needs help with the current screen or task.",
-            nextAction: "Ask the user to share a screen or provide more context.",
-            warning: ""
-        };
-    }
+}
+export async function analyzeScreenImage({ message, imageBase64, mimeType }) {
+    const prompt = `
+You are GuideLens AI, a real-time screen-aware assistant.
+
+Analyze the provided screenshot and return STRICT JSON in this exact shape:
+{
+  "screenSummary": "string",
+  "taskGuess": "string",
+  "nextAction": "string",
+  "warning": "string"
+}
+
+Rules:
+- Be concise.
+- Describe the visible UI.
+- Infer the user's likely task.
+- Recommend the single best next step.
+- warning can be empty if nothing seems wrong.
+- Do not wrap the JSON in markdown fences.
+- If the screen is unclear, say so in warning.
+User request: ${message}
+`;
+
+    const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: [
+            {
+                inlineData: {
+                    mimeType,
+                    data: imageBase64
+                }
+            },
+            {
+                text: prompt
+            }
+        ]
+    });
+
+    const text = response.text;
+    return safeParseJson(text) || fallbackResult(text);
 }
