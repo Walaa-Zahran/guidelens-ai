@@ -8,7 +8,7 @@ export default function VoiceControls({
   setSpeakingEnabled,
 }) {
   return (
-    <div className="voice-controls">
+    <div className="voice-controls panel-top">
       <div className="voice-controls-left">
         {!isListening ? (
           <button className="voice-btn" onClick={onStartListening}>

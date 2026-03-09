@@ -23,8 +23,9 @@ function fallbackResult(text) {
     return {
         screenSummary: text || "Unable to parse model response.",
         taskGuess: "The user likely needs help with the visible screen.",
-        nextAction: "Ask the user to share a clearer screen or provide more context.",
-        warning: ""
+        nextAction:
+            "Ask the user to share a clearer screen or provide more context.",
+        warning: "",
     };
 }
 
@@ -54,16 +55,15 @@ Rules:
                 role: "user",
                 parts: [
                     {
-                        text: `${systemPrompt}\n\nUser message: ${userMessage}`
-                    }
-                ]
-            }
-        ]
+                        text: `${systemPrompt}\n\nUser message: ${userMessage}`,
+                    },
+                ],
+            },
+        ],
     });
 
     const text = response.text;
     return safeParseJson(text) || fallbackResult(text);
-
 }
 export async function analyzeScreenImage({ message, imageBase64, mimeType }) {
     const prompt = `
@@ -78,13 +78,12 @@ Analyze the provided screenshot and return STRICT JSON in this exact shape:
 }
 
 Rules:
+- Prioritize the screenshot over the user's message.
+- Do not claim to see code, forms, buttons, or UI elements unless they are actually visible.
+- If the user's message conflicts with the screenshot, say that in warning.
 - Be concise.
-- Describe the visible UI.
-- Infer the user's likely task.
-- Recommend the single best next step.
-- warning can be empty if nothing seems wrong.
-- Do not wrap the JSON in markdown fences.
-- If the screen is unclear, say so in warning.
+- Do not wrap JSON in markdown fences.
+
 User request: ${message}
 `;
 
@@ -94,13 +93,13 @@ User request: ${message}
             {
                 inlineData: {
                     mimeType,
-                    data: imageBase64
-                }
+                    data: imageBase64,
+                },
             },
             {
-                text: prompt
-            }
-        ]
+                text: prompt,
+            },
+        ],
     });
 
     const text = response.text;
