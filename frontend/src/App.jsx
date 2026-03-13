@@ -11,6 +11,12 @@ const initialGuideData = {
   taskGuess: "",
   nextAction: "",
   warning: "",
+  confidence: "Medium",
+  steps: [
+    { title: "Inspect visible UI", status: "done" },
+    { title: "Infer likely task", status: "done" },
+    { title: "Recommend next action", status: "current" },
+  ],
 };
 
 export default function App() {
@@ -131,8 +137,14 @@ export default function App() {
   };
 
   const buildSpeechText = (data) => {
+    const currentStep = Array.isArray(data.steps)
+      ? data.steps.find((step) => step.status === "current")
+      : null;
+
     const parts = [
+      data.taskGuess ? `Current task: ${data.taskGuess}` : "",
       data.screenSummary ? `I see: ${data.screenSummary}` : "",
+      currentStep?.title ? `Current step: ${currentStep.title}` : "",
       data.nextAction ? `Next action: ${data.nextAction}` : "",
       data.warning ? `Warning: ${data.warning}` : "",
     ].filter(Boolean);

@@ -10,6 +10,24 @@ if (!apiKey) {
 }
 
 const ai = new GoogleGenAI({ apiKey });
+
+function normalizeResponse(parsed, fallbackText = "") {
+    return {
+        screenSummary: parsed?.screenSummary || fallbackText || "Unable to analyze the screen clearly.",
+        taskGuess: parsed?.taskGuess || "The user likely needs help with the current UI or task.",
+        nextAction: parsed?.nextAction || "Ask the user to provide a clearer screen or more detail.",
+        warning: parsed?.warning || "",
+        confidence: parsed?.confidence || "Medium",
+        steps: Array.isArray(parsed?.steps) && parsed.steps.length
+            ? parsed.steps.slice(0, 3)
+            : [
+                { title: "Inspect visible UI", status: "done" },
+                { title: "Infer likely task", status: "done" },
+                { title: "Recommend next step", status: "current" }
+            ]
+    };
+}
+
 function safeParseJson(text) {
     try {
         const cleaned = text.replace(/```json|```/g, "").trim();
@@ -19,52 +37,50 @@ function safeParseJson(text) {
     }
 }
 
-function fallbackResult(text) {
-    return {
-        screenSummary: text || "Unable to parse model response.",
-        taskGuess: "The user likely needs help with the visible screen.",
-        nextAction:
-            "Ask the user to share a clearer screen or provide more context.",
-        warning: "",
-    };
-}
-
 export async function analyzePromptOnly(userMessage) {
     const systemPrompt = `
 You are GuideLens AI, a real-time on-screen assistant.
-Respond clearly and briefly.
 
-Return your answer in this exact JSON shape:
+Return STRICT JSON in this exact shape:
 {
   "screenSummary": "string",
   "taskGuess": "string",
   "nextAction": "string",
-  "warning": "string"
+  "warning": "string",
+  "confidence": "High | Medium | Low",
+  "steps": [
+    { "title": "string", "status": "done | current | upcoming" },
+    { "title": "string", "status": "done | current | upcoming" },
+    { "title": "string", "status": "done | current | upcoming" }
+  ]
 }
 
 Rules:
-- Keep each field short.
-- If no actual screen is provided, infer from the user's message only.
-- warning can be an empty string.
+- Keep each field concise.
+- Infer from the user's message if no image is provided.
+- steps must contain exactly 3 items.
+- warning may be empty.
 `;
 
     const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
+        model: "gemini-2.5-flash",
         contents: [
             {
                 role: "user",
                 parts: [
                     {
-                        text: `${systemPrompt}\n\nUser message: ${userMessage}`,
-                    },
-                ],
-            },
-        ],
+                        text: `${systemPrompt}\n\nUser message: ${userMessage}`
+                    }
+                ]
+            }
+        ]
     });
 
     const text = response.text;
-    return safeParseJson(text) || fallbackResult(text);
+    const parsed = safeParseJson(text);
+    return normalizeResponse(parsed, text);
 }
+
 export async function analyzeScreenImage({ message, imageBase64, mimeType }) {
     const prompt = `
 You are GuideLens AI, a real-time screen-aware assistant.
@@ -74,14 +90,22 @@ Analyze the provided screenshot and return STRICT JSON in this exact shape:
   "screenSummary": "string",
   "taskGuess": "string",
   "nextAction": "string",
-  "warning": "string"
+  "warning": "string",
+  "confidence": "High | Medium | Low",
+  "steps": [
+    { "title": "string", "status": "done | current | upcoming" },
+    { "title": "string", "status": "done | current | upcoming" },
+    { "title": "string", "status": "done | current | upcoming" }
+  ]
 }
 
 Rules:
-- Prioritize the screenshot over the user's message.
-- Do not claim to see code, forms, buttons, or UI elements unless they are actually visible.
-- If the user's message conflicts with the screenshot, say that in warning.
 - Be concise.
+- Describe the visible UI.
+- Infer the user's likely task.
+- Recommend the single best next step.
+- Provide exactly 3 steps.
+- warning may be empty.
 - Do not wrap JSON in markdown fences.
 
 User request: ${message}
@@ -93,15 +117,16 @@ User request: ${message}
             {
                 inlineData: {
                     mimeType,
-                    data: imageBase64,
-                },
+                    data: imageBase64
+                }
             },
             {
-                text: prompt,
-            },
-        ],
+                text: prompt
+            }
+        ]
     });
 
     const text = response.text;
-    return safeParseJson(text) || fallbackResult(text);
+    const parsed = safeParseJson(text);
+    return normalizeResponse(parsed, text);
 }

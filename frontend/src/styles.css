@@ -281,6 +281,138 @@ body {
   border-color: rgba(91, 141, 239, 0.35);
   box-shadow: 0 0 0 1px rgba(91, 141, 239, 0.2);
 }
+.guide-panel-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.guide-heading {
+  margin: 6px 0 0;
+  font-size: 22px;
+  line-height: 1.2;
+  color: #f4f7ff;
+}
+
+.guide-summary-card {
+  background: linear-gradient(135deg, rgba(91, 141, 239, 0.16), rgba(139, 92, 246, 0.14));
+  border: 1px solid rgba(91, 141, 239, 0.22);
+  border-radius: 20px;
+  padding: 18px;
+}
+
+.guide-summary-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #b6c4e8;
+  margin-bottom: 8px;
+}
+
+.guide-summary-value {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.5;
+  color: white;
+}
+
+.confidence-badge {
+  padding: 10px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.confidence-badge.high {
+  background: rgba(73, 227, 155, 0.14);
+  color: #95f0ba;
+  border: 1px solid rgba(73, 227, 155, 0.25);
+}
+
+.confidence-badge.medium {
+  background: rgba(250, 204, 21, 0.12);
+  color: #f8dd7d;
+  border: 1px solid rgba(250, 204, 21, 0.24);
+}
+
+.confidence-badge.low {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ffb0b0;
+  border: 1px solid rgba(239, 68, 68, 0.24);
+}
+
+.steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.step-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.step-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.step-item.done .step-badge {
+  background: rgba(73, 227, 155, 0.16);
+  color: #90efb7;
+  border: 1px solid rgba(73, 227, 155, 0.28);
+}
+
+.step-item.current .step-badge {
+  background: rgba(91, 141, 239, 0.18);
+  color: #cfe0ff;
+  border: 1px solid rgba(91, 141, 239, 0.28);
+  box-shadow: 0 0 0 4px rgba(91, 141, 239, 0.08);
+}
+
+.step-item.upcoming .step-badge {
+  background: rgba(255, 255, 255, 0.08);
+  color: #d3dcf7;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.step-content {
+  min-width: 0;
+}
+
+.step-label {
+  font-size: 12px;
+  color: #94a3c7;
+  margin-bottom: 4px;
+}
+
+.step-title {
+  color: #eef3ff;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.warning-card {
+  border-color: rgba(250, 204, 21, 0.18);
+}
+
+.badge.success {
+  background: rgba(73, 227, 155, 0.14);
+  color: #95f0ba;
+}
 @media (max-width: 960px) {
   .main-layout {
     grid-template-columns: 1fr;
