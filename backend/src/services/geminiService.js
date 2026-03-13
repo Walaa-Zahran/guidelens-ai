@@ -11,6 +11,26 @@ if (!apiKey) {
 
 const ai = new GoogleGenAI({ apiKey });
 
+const VALID_POSITION_HINTS = [
+    "top-left",
+    "top-center",
+    "top-right",
+    "center-left",
+    "center",
+    "center-right",
+    "bottom-left",
+    "bottom-center",
+    "bottom-right"
+];
+
+function normalizePositionHint(value) {
+    if (VALID_POSITION_HINTS.includes(value)) {
+        return value;
+    }
+
+    return "center";
+}
+
 function normalizeResponse(parsed, fallbackText = "") {
     return {
         screenSummary: parsed?.screenSummary || fallbackText || "Unable to analyze the screen clearly.",
@@ -24,7 +44,9 @@ function normalizeResponse(parsed, fallbackText = "") {
                 { title: "Inspect visible UI", status: "done" },
                 { title: "Infer likely task", status: "done" },
                 { title: "Recommend next step", status: "current" }
-            ]
+            ],
+        targetElement: parsed?.targetElement || "Relevant UI area",
+        positionHint: normalizePositionHint(parsed?.positionHint)
     };
 }
 
@@ -52,7 +74,9 @@ Return STRICT JSON in this exact shape:
     { "title": "string", "status": "done | current | upcoming" },
     { "title": "string", "status": "done | current | upcoming" },
     { "title": "string", "status": "done | current | upcoming" }
-  ]
+  ],
+  "targetElement": "string",
+  "positionHint": "top-left | top-center | top-right | center-left | center | center-right | bottom-left | bottom-center | bottom-right"
 }
 
 Rules:
@@ -60,6 +84,8 @@ Rules:
 - Infer from the user's message if no image is provided.
 - steps must contain exactly 3 items.
 - warning may be empty.
+- targetElement should describe the most relevant area to focus on next.
+- positionHint must be one of the allowed values.
 `;
 
     const response = await ai.models.generateContent({
@@ -96,7 +122,9 @@ Analyze the provided screenshot and return STRICT JSON in this exact shape:
     { "title": "string", "status": "done | current | upcoming" },
     { "title": "string", "status": "done | current | upcoming" },
     { "title": "string", "status": "done | current | upcoming" }
-  ]
+  ],
+  "targetElement": "string",
+  "positionHint": "top-left | top-center | top-right | center-left | center | center-right | bottom-left | bottom-center | bottom-right"
 }
 
 Rules:
@@ -106,13 +134,15 @@ Rules:
 - Recommend the single best next step.
 - Provide exactly 3 steps.
 - warning may be empty.
+- targetElement should name the area or UI element the user should focus on.
+- positionHint must be one of the allowed 9 positions.
 - Do not wrap JSON in markdown fences.
 
 User request: ${message}
 `;
 
     const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: "gemini-3-flash-preview",
         contents: [
             {
                 inlineData: {

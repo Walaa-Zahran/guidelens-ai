@@ -17,6 +17,8 @@ const initialGuideData = {
     { title: "Infer likely task", status: "done" },
     { title: "Recommend next action", status: "current" },
   ],
+  targetElement: "",
+  positionHint: "center",
 };
 
 export default function App() {
@@ -145,6 +147,7 @@ export default function App() {
       data.taskGuess ? `Current task: ${data.taskGuess}` : "",
       data.screenSummary ? `I see: ${data.screenSummary}` : "",
       currentStep?.title ? `Current step: ${currentStep.title}` : "",
+      data.targetElement ? `Focus on: ${data.targetElement}` : "",
       data.nextAction ? `Next action: ${data.nextAction}` : "",
       data.warning ? `Warning: ${data.warning}` : "",
     ].filter(Boolean);
@@ -292,6 +295,10 @@ export default function App() {
           isSharing={isSharing}
           onStartSharing={handleStartSharing}
           onStopSharing={handleStopSharing}
+          highlight={{
+            targetElement: guideData.targetElement,
+            positionHint: guideData.positionHint,
+          }}
         />
         <GuidePanel data={guideData} loading={loading} />
       </main>

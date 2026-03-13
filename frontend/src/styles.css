@@ -413,6 +413,131 @@ body {
   background: rgba(73, 227, 155, 0.14);
   color: #95f0ba;
 }
+.screen-video-wrap {
+  position: relative;
+}
+
+.screen-status-strip {
+  margin-top: 14px;
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.screen-status-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #d7e2ff;
+  font-size: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.screen-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #49e39b;
+  box-shadow: 0 0 12px rgba(73, 227, 155, 0.8);
+}
+
+.highlight-box {
+  position: absolute;
+  width: 24%;
+  height: 14%;
+  border-radius: 18px;
+  border: 2px solid rgba(91, 141, 239, 0.95);
+  background: rgba(91, 141, 239, 0.12);
+  box-shadow:
+    0 0 0 1px rgba(91, 141, 239, 0.25),
+    0 0 30px rgba(91, 141, 239, 0.18);
+  pointer-events: none;
+  z-index: 3;
+  overflow: hidden;
+}
+
+.highlight-pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  animation: highlightPulse 1.8s ease-in-out infinite;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.2);
+}
+
+.highlight-label {
+  position: absolute;
+  min-width: 180px;
+  max-width: 240px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(11, 16, 32, 0.9);
+  border: 1px solid rgba(91, 141, 239, 0.28);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  color: white;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.highlight-label-title {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #9fb8ff;
+  margin-bottom: 4px;
+}
+
+.highlight-label-text {
+  display: block;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #eef4ff;
+  font-weight: 600;
+}
+
+/* positions for highlight box */
+.highlight-box.top-left { top: 8%; left: 6%; }
+.highlight-box.top-center { top: 8%; left: 38%; }
+.highlight-box.top-right { top: 8%; right: 6%; }
+
+.highlight-box.center-left { top: 40%; left: 6%; }
+.highlight-box.center { top: 40%; left: 38%; }
+.highlight-box.center-right { top: 40%; right: 6%; }
+
+.highlight-box.bottom-left { bottom: 18%; left: 6%; }
+.highlight-box.bottom-center { bottom: 10%; left: 38%; }
+.highlight-box.bottom-right { bottom: 10%; right: 6%; }
+
+/* positions for floating labels */
+.highlight-label.top-left { top: 4%; left: 6%; }
+.highlight-label.top-center { top: 4%; left: 38%; }
+.highlight-label.top-right { top: 4%; right: 6%; }
+
+.highlight-label.center-left { top: 31%; left: 6%; }
+.highlight-label.center { top: 31%; left: 38%; }
+.highlight-label.center-right { top: 31%; right: 6%; }
+
+.highlight-label.bottom-left { bottom: 33%; left: 6%; }
+.highlight-label.bottom-center { bottom: 33%; left: 38%; }
+.highlight-label.bottom-right { bottom: 33%; right: 6%; }
+
+@keyframes highlightPulse {
+  0% {
+    transform: scale(0.98);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.02);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.98);
+    opacity: 0.7;
+  }
+}
 @media (max-width: 960px) {
   .main-layout {
     grid-template-columns: 1fr;
