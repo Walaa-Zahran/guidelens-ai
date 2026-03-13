@@ -523,7 +523,44 @@ body {
 .highlight-label.bottom-left { bottom: 33%; left: 6%; }
 .highlight-label.bottom-center { bottom: 33%; left: 38%; }
 .highlight-label.bottom-right { bottom: 33%; right: 6%; }
+.session-meta {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
 
+.session-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #dce5ff;
+  font-size: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.session-task-line {
+  margin-top: 12px;
+  color: #b8c5e3;
+  line-height: 1.5;
+}
+
+.header-reset-btn {
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.header-reset-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
 @keyframes highlightPulse {
   0% {
     transform: scale(0.98);

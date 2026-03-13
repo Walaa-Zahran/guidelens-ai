@@ -3,7 +3,7 @@ import Header from "./components/Header";
 import ScreenStage from "./components/ScreenStage";
 import GuidePanel from "./components/GuidePanel";
 import VoiceControls from "./components/VoiceControls";
-import { analyzeMessage, analyzeScreen } from "./api";
+import { analyzeMessage, analyzeScreen, resetSession } from "./api";
 import "./styles.css";
 
 const initialGuideData = {
@@ -19,6 +19,7 @@ const initialGuideData = {
   ],
   targetElement: "",
   positionHint: "center",
+  needsClarification: false,
 };
 
 export default function App() {
@@ -32,22 +33,49 @@ export default function App() {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [speakingEnabled, setSpeakingEnabled] = useState(true);
+  const [sessionId] = useState(() => {
+    if (window.crypto?.randomUUID) {
+      return window.crypto.randomUUID();
+    }
+
+    return `session-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  });
+  const [sessionMeta, setSessionMeta] = useState(null);
   const transcriptRef = useRef("");
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const recognitionRef = useRef(null);
+  const handleResetSession = async () => {
+    try {
+      setError("");
+      window.speechSynthesis?.cancel();
 
+      const response = await resetSession(sessionId);
+
+      if (response.ok) {
+        setGuideData(initialGuideData);
+        setTranscript("");
+        transcriptRef.current = "";
+        setSessionMeta(response.session || null);
+      } else {
+        setError("Unable to reset session.");
+      }
+    } catch (err) {
+      setError(
+        err.response?.data?.error || err.message || "Failed to reset session",
+      );
+    }
+  };
   const handleAnalyzeTextOnly = async (customMessage) => {
     try {
       setLoading(true);
       setError("");
 
       const finalMessage = customMessage || message;
-      const response = await analyzeMessage(finalMessage);
-
+      const response = await analyzeMessage(finalMessage, sessionId);
       if (response.ok) {
         setGuideData(response.result);
-
+        setSessionMeta(response.session || null);
         if (speakingEnabled) {
           speakGuideResponse(response.result);
         }
@@ -152,6 +180,12 @@ export default function App() {
       data.warning ? `Warning: ${data.warning}` : "",
     ].filter(Boolean);
 
+    if (data.needsClarification) {
+      parts.push(
+        "Please provide a clearer screen or ask a more specific question.",
+      );
+    }
+
     return parts.join(". ");
   };
 
@@ -181,10 +215,12 @@ export default function App() {
         message: finalMessage,
         imageBase64,
         mimeType: "image/png",
+        sessionId,
       });
 
       if (response.ok) {
         setGuideData(response.result);
+        setSessionMeta(response.session || null);
 
         if (speakingEnabled) {
           speakGuideResponse(response.result);
@@ -287,8 +323,11 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <Header />
-
+      <Header
+        sessionId={sessionId}
+        sessionMeta={sessionMeta}
+        onResetSession={handleResetSession}
+      />
       <main className="main-layout">
         <ScreenStage
           videoRef={videoRef}

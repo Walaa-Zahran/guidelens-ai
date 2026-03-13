@@ -20,7 +20,7 @@ const VALID_POSITION_HINTS = [
     "center-right",
     "bottom-left",
     "bottom-center",
-    "bottom-right"
+    "bottom-right",
 ];
 
 function normalizePositionHint(value) {
@@ -31,23 +31,77 @@ function normalizePositionHint(value) {
     return "center";
 }
 
-function normalizeResponse(parsed, fallbackText = "") {
+function normalizeSteps(steps) {
+    if (Array.isArray(steps) && steps.length) {
+        return steps.slice(0, 3);
+    }
+
+    return [
+        { title: "Inspect visible UI", status: "done" },
+        { title: "Infer likely task", status: "done" },
+        { title: "Recommend next step", status: "current" },
+    ];
+}
+
+function normalizeConfidence(value) {
+    const allowed = ["High", "Medium", "Low"];
+    return allowed.includes(value) ? value : "Medium";
+}
+
+function buildFallbackResponse(fallbackText = "", sessionContext = {}) {
+    const unclearWarning =
+        "The screen or request may be unclear. Try sharing a clearer view or asking a more specific question.";
+
     return {
-        screenSummary: parsed?.screenSummary || fallbackText || "Unable to analyze the screen clearly.",
-        taskGuess: parsed?.taskGuess || "The user likely needs help with the current UI or task.",
-        nextAction: parsed?.nextAction || "Ask the user to provide a clearer screen or more detail.",
-        warning: parsed?.warning || "",
-        confidence: parsed?.confidence || "Medium",
-        steps: Array.isArray(parsed?.steps) && parsed.steps.length
-            ? parsed.steps.slice(0, 3)
-            : [
-                { title: "Inspect visible UI", status: "done" },
-                { title: "Infer likely task", status: "done" },
-                { title: "Recommend next step", status: "current" }
-            ],
-        targetElement: parsed?.targetElement || "Relevant UI area",
-        positionHint: normalizePositionHint(parsed?.positionHint)
+        screenSummary: fallbackText || "Unable to analyze the screen clearly.",
+        taskGuess:
+            sessionContext.currentTask ||
+            "The user likely needs help with the current UI or task.",
+        nextAction: "Ask the user to provide a clearer screen or more detail.",
+        warning: unclearWarning,
+        confidence: "Low",
+        steps: [
+            { title: "Inspect visible UI", status: "done" },
+            { title: "Detect uncertainty", status: "done" },
+            { title: "Request clearer context", status: "current" },
+        ],
+        targetElement: "Relevant UI area",
+        positionHint: "center",
+        needsClarification: true,
     };
+}
+
+function normalizeResponse(parsed, fallbackText = "", sessionContext = {}) {
+    if (!parsed) {
+        return buildFallbackResponse(fallbackText, sessionContext);
+    }
+
+    const normalized = {
+        screenSummary:
+            parsed.screenSummary ||
+            fallbackText ||
+            "Unable to analyze the screen clearly.",
+        taskGuess:
+            parsed.taskGuess ||
+            sessionContext.currentTask ||
+            "The user likely needs help with the current UI or task.",
+        nextAction:
+            parsed.nextAction ||
+            "Ask the user to provide a clearer screen or more detail.",
+        warning: parsed.warning || "",
+        confidence: normalizeConfidence(parsed.confidence),
+        steps: normalizeSteps(parsed.steps),
+        targetElement: parsed.targetElement || "Relevant UI area",
+        positionHint: normalizePositionHint(parsed.positionHint),
+        needsClarification: Boolean(parsed.needsClarification),
+    };
+
+    if (normalized.confidence === "Low" && !normalized.warning) {
+        normalized.warning =
+            "The result may be uncertain. Try a clearer screen or a more specific question.";
+    }
+
+    return normalized;
 }
 
 function safeParseJson(text) {
@@ -59,9 +113,34 @@ function safeParseJson(text) {
     }
 }
 
-export async function analyzePromptOnly(userMessage) {
+function buildSessionContextText(sessionContext = {}) {
+    const historyText = Array.isArray(sessionContext.history)
+        ? sessionContext.history
+            .slice(-3)
+            .map((item, index) => {
+                return `History ${index + 1}:
+- userRequest: ${item.userRequest || ""}
+- taskGuess: ${item.taskGuess || ""}
+- nextAction: ${item.nextAction || ""}
+- confidence: ${item.confidence || ""}`;
+            })
+            .join("\n")
+        : "";
+
+    return `
+Session context:
+- currentTask: ${sessionContext.currentTask || ""}
+- lastScreenSummary: ${sessionContext.lastScreenSummary || ""}
+- lastNextAction: ${sessionContext.lastNextAction || ""}
+- lastWarning: ${sessionContext.lastWarning || ""}
+- confidence: ${sessionContext.confidence || ""}
+${historyText}
+`;
+}
+
+export async function analyzePromptOnly(userMessage, sessionContext = {}) {
     const systemPrompt = `
-You are GuideLens AI, a real-time on-screen assistant.
+You are GuideLens AI, a reliable real-time on-screen assistant.
 
 Return STRICT JSON in this exact shape:
 {
@@ -76,7 +155,8 @@ Return STRICT JSON in this exact shape:
     { "title": "string", "status": "done | current | upcoming" }
   ],
   "targetElement": "string",
-  "positionHint": "top-left | top-center | top-right | center-left | center | center-right | bottom-left | bottom-center | bottom-right"
+  "positionHint": "top-left | top-center | top-right | center-left | center | center-right | bottom-left | bottom-center | bottom-right",
+  "needsClarification": true
 }
 
 Rules:
@@ -86,30 +166,39 @@ Rules:
 - warning may be empty.
 - targetElement should describe the most relevant area to focus on next.
 - positionHint must be one of the allowed values.
+- Set needsClarification to true only if the request is too vague or uncertain.
+- If confidence is low, provide a helpful warning and safer next action.
 `;
 
     const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: "gemini-3-flash-preview",
         contents: [
             {
                 role: "user",
                 parts: [
                     {
-                        text: `${systemPrompt}\n\nUser message: ${userMessage}`
-                    }
-                ]
-            }
-        ]
+                        text: `${systemPrompt}
+
+                        ${buildSessionContextText(sessionContext)}
+
+                        User message: ${userMessage}`,
+                    },
+                ],
+            },
+        ],
     });
 
     const text = response.text;
     const parsed = safeParseJson(text);
-    return normalizeResponse(parsed, text);
+    return normalizeResponse(parsed, text, sessionContext);
 }
 
-export async function analyzeScreenImage({ message, imageBase64, mimeType }) {
+export async function analyzeScreenImage(
+    { message, imageBase64, mimeType },
+    sessionContext = {},
+) {
     const prompt = `
-You are GuideLens AI, a real-time screen-aware assistant.
+You are GuideLens AI, a reliable real-time screen-aware assistant.
 
 Analyze the provided screenshot and return STRICT JSON in this exact shape:
 {
@@ -124,7 +213,8 @@ Analyze the provided screenshot and return STRICT JSON in this exact shape:
     { "title": "string", "status": "done | current | upcoming" }
   ],
   "targetElement": "string",
-  "positionHint": "top-left | top-center | top-right | center-left | center | center-right | bottom-left | bottom-center | bottom-right"
+  "positionHint": "top-left | top-center | top-right | center-left | center | center-right | bottom-left | bottom-center | bottom-right",
+  "needsClarification": true
 }
 
 Rules:
@@ -136,27 +226,31 @@ Rules:
 - warning may be empty.
 - targetElement should name the area or UI element the user should focus on.
 - positionHint must be one of the allowed 9 positions.
+- Set needsClarification to true only if the screen is unclear or the request is too vague.
+- If confidence is low, explain the uncertainty and recommend a safer next step.
 - Do not wrap JSON in markdown fences.
+
+${buildSessionContextText(sessionContext)}
 
 User request: ${message}
 `;
 
     const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
+        model: "gemini-2.5-flash",
         contents: [
             {
                 inlineData: {
                     mimeType,
-                    data: imageBase64
-                }
+                    data: imageBase64,
+                },
             },
             {
-                text: prompt
-            }
-        ]
+                text: prompt,
+            },
+        ],
     });
 
     const text = response.text;
     const parsed = safeParseJson(text);
-    return normalizeResponse(parsed, text);
+    return normalizeResponse(parsed, text, sessionContext);
 }
